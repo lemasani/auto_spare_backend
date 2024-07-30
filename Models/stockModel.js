@@ -5,6 +5,7 @@ const Stock = sequelize.define('Stock', {
   name: {
 	type: DataTypes.STRING,
 	allowNull: false,
+  unique: true
   },
   quantity: {
 	type: DataTypes.INTEGER,
@@ -24,7 +25,7 @@ const Stock = sequelize.define('Stock', {
   },
 }, {
   tableName: 'Stocks',
-  timestamps: false,
+  timestamps: true,
 });
 
 module.exports = Stock;
