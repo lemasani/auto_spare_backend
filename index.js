@@ -1,9 +1,10 @@
 require('dotenv').config()
 const express = require('express')
 
-const sequelize = require('./config/database');
-
+const db = require('./models'); // Import the models
 const stockRoutes = require('./Routes/stockRoutes')
+
+
 
 const app = express()
 
@@ -13,18 +14,18 @@ app.use(express.json())
 
 
 // Routes
-app.use('/api/stocks', stockRoutes)
+// app.use('/api/stocks', stockRoutes)
 
 
-// Test the database connection
-sequelize.sync()
+
+
+db.sequelize.sync({ force: true }) // Use { force: true } to drop and recreate tables on every sync
   .then(() => {
-    console.log('Database connection has been established successfully.');
-    // Start the server only if the database connection is successful
-    app.listen(port, () => {
-      console.log(`server listening to port ${port}`);
-    });
+    console.log('Database & tables created!');
   })
   .catch(err => {
-    console.error('Unable to connect to the database:', err);
+    console.error('Unable to create tables:', err);
+  });
+  app.listen(port, () => {
+    console.log(`server listening to port ${port}`);
   });
