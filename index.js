@@ -1,10 +1,12 @@
 require('dotenv').config()
 const express = require('express')
 
-const db = require('./models'); // Import the models
-const stockRoutes = require('./Routes/stockRoutes')
+// Import the models
+const db = require('./models'); 
 
-
+//imports Routes
+const ProductRoutes = require('./Routes/productRoute')
+const CategoryRoutes = require('./Routes/categoryRoute')
 
 const app = express()
 
@@ -16,12 +18,13 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Routes
-// app.use('/api/stocks', stockRoutes)
+app.use('/api/products', ProductRoutes)
+app.use('/api/category', CategoryRoutes)
 
 
 
 
-db.sequelize.sync({ force: true }) // Use { force: true } to drop and recreate tables on every sync
+db.sequelize.sync({alter: true}) 
   .then(() => {
     console.log('Database & tables created!');
   })

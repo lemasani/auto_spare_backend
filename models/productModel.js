@@ -40,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Categories',
         key: 'id'
       }
+    },
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
     }
   });
 
