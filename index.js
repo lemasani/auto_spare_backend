@@ -6,7 +6,12 @@ const db = require('./models');
 
 //imports Routes
 const ProductRoutes = require('./Routes/productRoute')
-const CategoryRoutes = require('./Routes/categoryRoute')
+const CategoryRoutes = require('./Routes/categoryRoute');
+
+
+//error handler import
+const ErrorHandler  = require('./middleware/errorHandler');
+const { NotFoundError } = require('./Utils/customError');
 
 const app = express()
 
@@ -22,6 +27,13 @@ app.use('/api/products', ProductRoutes)
 app.use('/api/category', CategoryRoutes)
 
 
+// Middleware to catch undefined routes
+app.use((req, res, next) => {
+  next(new NotFoundError('Route not found'));
+});
+
+// Error handling middleware
+app.use(ErrorHandler);
 
 
 db.sequelize.sync() 
@@ -30,7 +42,10 @@ db.sequelize.sync()
   })
   .catch(err => {
     console.error('Unable to create tables:', err);
-  });
-  app.listen(port, () => {
-    console.log(`server listening to port ${port}`);
-  });
+});
+
+
+app.listen(port, () => {
+  console.log(`server listening to port ${port}`);
+});
+

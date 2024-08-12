@@ -1,75 +1,80 @@
 const {Product, Category} = require('../models');
-const generateSKU = require('./../Services/generateSKU');
+const generateSKU = require('../Utils/generateSKU');
+const productSchema = require('../Utils/Schemas/productSchema');
+const {ValidationError, NotFoundError} = require('./../Utils/customError')
 
 
 //create a product
-exports.PostProduct = async (req, res) => {
-    try {
-        const {
-            name,
-            description,
-            manufacturer,
-            price,
-            quantity,
-            category_id,
-            imageUrl,
-        } = req.body;
-        const category = await Category.findByPk(category_id);
-        console.log(category)
-        const sku = generateSKU(name, category.name);
-        const newProduct = await Product.create({
-            sku,
-            name,
-            description,
-            manufacturer,
-            price,
-            quantity,
-            category_id,
-            imageUrl,
-        });
-        res.status(201).json(newProduct);
-    } catch (error) {
-        console.error('Error creating Product:', error);
-        res.status(500).json({ error: 'Failed to create Product' });
+exports.PostProduct = async (req, res, next) => {
+  try {
+    // Validate the request body
+    const { error } = productSchema.validate(req.body);
+    if (error) {
+      throw new ValidationError(error.details[0].message);
     }
+
+    const { name, description, manufacturer, price, quantity, category_id, imageUrl } = req.body;
+    const category = await Category.findByPk(category_id);
+
+    if (!category) {
+      throw new ValidationError('Invalid category ID');
+    }
+
+    const sku = generateSKU(name, category.name);
+    const newProduct = await Product.create({
+      sku,
+      name,
+      description,
+      manufacturer,
+      price,
+      quantity,
+      category_id,
+      imageUrl,
+    });
+
+    res.status(201).json(newProduct);
+  } catch (error) {
+    console.error('Error creating Product:', error);
+    next(error); 
+  }
 };
 
 //gets all products
-exports.GetProducts = async (req, res) => {
+exports.GetProducts = async (req, res, next) => {
   try {
+
     const Products = await Product.findAll();
+    if (!Products) {
+      throw new NotFoundError('No products found');
+    }
     res.status(200).json(Products);
   } catch (error) {
     console.error('Error fetching Products', error);
-    res.status(500).json({
-      error: 'Error fetching Products',
-    });
+    next(error)
   }
 };
 
 //gets specific product
-exports.GetProduct = async (req, res)=>{
+exports.GetProduct = async (req, res, next)=>{
   try {
     const { id } = req.params;
 
     const product = await Product.findByPk(id, { include: [Category] });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      throw new NotFoundError('Product not found')
     }
 
     res.status(200).json(product);
   } catch (error) {
     console.error('Error fetching Product', error);
-    res.status(500).json({
-      error: 'Error fetching Product',
-    });
+    next(error)
   }
 }
 
 
 // deletes a product
-exports.DeleteProduct = async (req, res) => {
+exports.DeleteProduct = async (req, res, next) => {
     try {
       const { id } = req.params;
   
@@ -77,7 +82,7 @@ exports.DeleteProduct = async (req, res) => {
       const ProductItem = await Product.findByPk(id);
   
       if (!ProductItem) {
-        return res.status(404).json({ error: 'Product item not found' });
+        throw new NotFoundError('Product not found to be deleted')
       }
   
       // Delete the Product item
@@ -86,8 +91,6 @@ exports.DeleteProduct = async (req, res) => {
       res.status(200).json({ message: 'Product item deleted successfully' });
     } catch (error) {
       console.error('Error deleting Product item', error);
-      res.status(500).json({
-        error: 'Error deleting Product item',
-      });
+      next(error)
     }
   };
