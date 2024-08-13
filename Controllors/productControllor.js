@@ -73,6 +73,35 @@ exports.GetProduct = async (req, res, next)=>{
 }
 
 
+//edit a product
+exports.EditProduct = async (req, res, next) =>{
+  try {
+    const { id } = req.params;
+    const editedProduct = req.body
+
+     // Validate the edited product
+    // const { error } = productSchema.validate(editedProduct);
+    // if (error) {
+    //   throw new ValidationError(error.details[0].message);
+    // }
+
+
+    const product = await Product.findByPk(id);
+
+    if (!product) {
+      throw new NotFoundError('Product not found to be edited')
+    }
+
+    await product.update(editedProduct);
+    res.status(200).json(product);
+
+    
+  } catch (error) {
+    next(error)
+  }
+}
+
+
 // deletes a product
 exports.DeleteProduct = async (req, res, next) => {
     try {
